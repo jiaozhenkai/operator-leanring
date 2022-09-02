@@ -1,0 +1,9 @@
+apiVersion: my.domain/v1
+kind: WebServer
+metadata:
+  name: webserver-sample
+
+spec:
+  name: replicas-update
+  ip: 1.1.1.1
+  replicas: 1
