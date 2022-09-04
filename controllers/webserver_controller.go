@@ -55,12 +55,13 @@ type WebServerReconciler struct {
 const WebserverFinalizer = "webserver.finalizer"
 
 func (r *WebServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
+	fmt.Println("start reconcile......")
 	_ = log.FromContext(ctx)
 	// TODO(user): your logic here
 	var webserverList = mydomainv1.WebServerList{}
 
 	err := r.List(ctx, &webserverList)
-	fmt.Println("test", webserverList)
+
 	if err != nil {
 		log.Log.Error(err, "list webserver list error")
 		return ctrl.Result{}, err
@@ -73,6 +74,13 @@ func (r *WebServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			if len(item.Finalizers) == 0 {
 				item.Finalizers = append(item.Finalizers, WebserverFinalizer)
 			}
+
+			hasFinalizer := containsFinalizer(item.Finalizers)
+			if !hasFinalizer {
+				item.Finalizers = append(item.Finalizers, WebserverFinalizer)
+			}
+
+			fmt.Println("first exec update")
 			if err := r.Update(ctx, &item); err != nil {
 				log.Log.Error(err, "update finalizer error")
 				return ctrl.Result{}, err
@@ -82,6 +90,7 @@ func (r *WebServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 			// 这里需要判断 CR 中的 finalizer 是不是与自定义的 finalizer 一致，如果一致则应该执行一个方法去删除依赖资源，然后再来删除 finalizer
 			fmt.Println("delete webserver cr")
 			item.Finalizers = removeFinalizer(item.Finalizers)
+			fmt.Println("second exec update")
 			if err := r.Update(ctx, &item); err != nil {
 				log.Log.Error(err, "remove finalizer error")
 				return ctrl.Result{}, err
@@ -104,7 +113,9 @@ func (r *WebServerReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		item.Status.Message = fmt.Sprintf("%s %d %s", "update replicas to ", item.Spec.Replicas, "success")
 
 		item.SetFinalizers([]string{})
+		fmt.Println("first exec update status")
 		r.Status().Update(ctx, &item)
+		fmt.Println("third exec update")
 		r.Update(ctx, &item)
 	}
 	return ctrl.Result{}, nil
@@ -126,4 +137,20 @@ func removeFinalizer(items []string) []string {
 		res = append(res, item)
 	}
 	return res
+}
+
+func containsFinalizer(items []string) bool {
+	if len(items) == 0 {
+		return false
+	}
+
+	var i int
+
+	for i = 0; i < len(items); i++ {
+		if items[i] == WebserverFinalizer {
+			return true
+		}
+	}
+
+	return false
 }

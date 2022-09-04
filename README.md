@@ -1,5 +1,9 @@
 # webserver-operator
-// TODO(user): Add simple overview of use/purpose
+
+学习 operator 开发;
+
+webserver controller 控制 CR 中的 replicas 数量，根据这个
+的值会更新同一个 ns 下的 nginx deploy replicas
 
 ## Description
 // TODO(user): An in-depth paragraph about your project and overview of use
