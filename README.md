@@ -1,9 +1,13 @@
 # webserver-operator
 
-学习 operator 开发;
+目的：学习 operator 开发;
 
-webserver controller 控制 CR 中的 replicas 数量，根据这个
-的值会更新同一个 ns 下的 nginx deploy replicas
+功能：
+1. webserver controller 控制 CR 中的 replicas ，根据这个
+值会更新同一个 ns 下的 nginx deploy replicas。
+2. 同时设置了 finalizer 和 DeletionTimestamp 防止：提交了删除指令， 但是 controller 在此时崩溃了，
+设置这两个值为了让 controller 在重新启动后继续删除资源，因为DeletionTimestamp 不为 0 ，
+此时 controller 看到 DeletionTimestamp 不为 0，就会重新删除资源。
 
 ## Description
 // TODO(user): An in-depth paragraph about your project and overview of use
